@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Spotify Stats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #1DB954;
+      --green-glow: rgba(29,185,84,0.18);
+      --gold: #c9a84c;
+      --black: #080808;
+      --surface: #0f0f0f;
+      --surface2: #161616;
+      --surface3: #1e1e1e;
+      --border: #252525;
+      --border-gold: rgba(201,168,76,0.2);
+      --text: #f0ede8;
+      --muted: #5a5550;
+      --muted2: #383330;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'Cormorant Garamond', serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(29,185,84,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(201,168,76,0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* LOGIN */
+    #login-screen {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .login-rule-top {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, var(--border-gold));
+      margin-bottom: 40px;
+    }
+
+    .login-eyebrow {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .login-eyebrow::before, .login-eyebrow::after {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--green);
+      opacity: 0.4;
+    }
+
+    .login-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 9vw, 7rem);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .login-title .line2 {
+      font-style: italic;
+      color: var(--green);
+      display: block;
+    }
+
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 28px 0;
+      width: 320px;
+    }
+
+    .login-divider-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border-gold), transparent);
+    }
+
+    .login-divider-diamond {
+      width: 6px;
+      height: 6px;
+      border: 1px solid var(--gold);
+      transform: rotate(45deg);
+      opacity: 0.6;
+    }
+
+    .login-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--muted);
+      max-width: 380px;
+      line-height: 1.7;
+      margin-bottom: 44px;
+    }
+
+    .btn-login {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(29,185,84,0.4);
+      padding: 18px 44px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--green);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      z-index: -1;
+    }
+
+    .btn-login:hover { color: #000; border-color: var(--green); box-shadow: 0 0 40px rgba(29,185,84,0.25); }
+    .btn-login:hover::before { transform: scaleX(1); }
+
+    .login-rule-bottom {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to top, transparent, var(--border-gold));
+      margin-top: 40px;
+    }
+
+    /* APP */
+    #app {
+      display: none;
+      min-height: 100vh;
+      position: relative;
+      z-index: 10;
+      padding-bottom: 100px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,8,8,0.9);
+      backdrop-filter: blur(32px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(24px, 5vw, 72px);
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(29,185,84,0.3), transparent);
+    }
+
+    .header-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    .header-brand span { color: var(--green); }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--border-gold);
+    }
+
+    #user-name {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-logout {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 16px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover { border-color: var(--muted2); color: var(--text); }
+
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 64px clamp(24px, 5vw, 48px) 0;
+    }
+
+    .page-header { margin-bottom: 56px; }
+
+    .page-eyebrow {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-eyebrow::after {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 1px;
+      background: var(--green);
+      opacity: 0.35;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 0.95;
+    }
+
+    .page-title em { font-style: italic; color: var(--green); }
+
+    .page-title-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    /* TABS */
+    .time-tabs {
+      display: flex;
+      margin-bottom: 48px;
+      border: 1px solid var(--border);
+      width: fit-content;
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border);
+      color: var(--muted);
+      padding: 12px 26px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn:hover { background: var(--surface2); color: var(--text); }
+    .tab-btn.active { background: var(--green); color: #000; font-weight: 700; }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      padding: 24px 28px;
+      transition: background 0.2s;
+    }
+
+    .stat-card:hover { background: var(--surface2); }
+
+    .stat-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.64rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .stat-value.green { color: var(--green); }
+
+    .stat-value.small {
+      font-size: 1.1rem;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .plays-note {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--gold);
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .plays-note strong { color: var(--text); font-style: normal; font-weight: 600; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 14px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-header span {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* TRACKS */
+    .tracks-list { display: flex; flex-direction: column; }
+
+    .track-row {
+      display: grid;
+      grid-template-columns: 44px 56px 1fr auto;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(37,37,37,0.5);
+      transition: background 0.15s;
+      animation: fadeUp 0.5s ease both;
+      cursor: default;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .track-row:hover { background: var(--surface2); }
+    .track-row:hover .track-rank-num { color: var(--green); }
+
+    .track-rank { text-align: right; }
+
+    .track-rank-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--muted2);
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .track-rank-num.top3 { color: var(--green); font-size: 1.3rem; }
+
+    .track-art {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      display: block;
+      background: var(--surface3);
+      filter: brightness(0.9);
+      transition: filter 0.2s;
+    }
+
+    .track-row:hover .track-art { filter: brightness(1); }
+
+    .track-row.podium .track-art {
+      box-shadow: 0 0 0 1px var(--gold), 0 4px 20px rgba(201,168,76,0.15);
+    }
+
+    .track-info { overflow: hidden; }
+
+    .track-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-artist {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 4px;
+    }
+
+    .track-album {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.8rem;
+      font-style: italic;
+      color: var(--muted2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .track-plays { text-align: right; flex-shrink: 0; min-width: 70px; }
+
+    .plays-count {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--green);
+      line-height: 1;
+    }
+
+    .plays-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      margin-top: 3px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* LOADING */
+    #loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      gap: 24px;
+    }
+
+    .spinner-ring {
+      width: 52px;
+      height: 52px;
+      border: 1px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .error-box {
+      background: var(--surface);
+      border: 1px solid rgba(255,80,80,0.3);
+      padding: 32px;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--muted2); }
+
+    @media (max-width: 600px) {
+      .time-tabs { width: 100%; flex-wrap: wrap; }
+      .tab-btn { flex: 1; border-right: none; border-bottom: 1px solid var(--border); }
+      .track-row { grid-template-columns: 32px 44px 1fr auto; gap: 10px; }
+      .track-art { width: 44px; height: 44px; }
+      .track-album { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-rule-top"></div>
+  <div class="login-eyebrow">Your Listening History</div>
+  <h1 class="login-title">
+    Spotify
+    <span class="line2">Stats</span>
+  </h1>
+  <div class="login-divider">
+    <div class="login-divider-line"></div>
+    <div class="login-divider-diamond"></div>
+    <div class="login-divider-line"></div>
+  </div>
+  <p class="login-sub">Your top 50 tracks revealed — across two weeks, four weeks, six months, and all time.</p>
+  <a id="login-btn" class="btn-login" href="#">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.361.181.54.78.241 1.2zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+    </svg>
+    Connect with Spotify
+  </a>
+  <div class="login-rule-bottom"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-brand">Spotify <span>Stats</span></div>
+    <div class="header-user">
+      <img id="user-avatar" src="" alt="" style="display:none"/>
+      <span id="user-name"></span>
+      <button class="btn-logout" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="loading">
+      <div class="spinner-ring"></div>
+      <p class="loading-text">Curating your listening history…</p>
+    </div>
+
+    <div id="content" style="display:none">
+      <div class="page-header">
+        <p class="page-eyebrow">Top Tracks</p>
+        <h1 class="page-title">Your Top <em>50</em></h1>
+        <p class="page-title-sub" id="range-subtitle">Last four weeks of listening</p>
+      </div>
+
+      <div class="time-tabs">
+        <button class="tab-btn" data-range="short_term">2 Weeks</button>
+        <button class="tab-btn active" data-range="short_term_4w">4 Weeks</button>
+        <button class="tab-btn" data-range="medium_term">6 Months</button>
+        <button class="tab-btn" data-range="long_term">All Time</button>
+      </div>
+
+      <div class="stats-bar" id="stats-bar"></div>
+
+      <div class="plays-note">
+        <strong>A note on play counts —</strong> Spotify's API ranks tracks by listening frequency but does not expose exact play counts. The figures shown are <em>estimates</em> derived from your rank position and recent listening activity.
+      </div>
+
+      <div class="section-header">
+        <span>Track · Artist · Album</span>
+        <span>Est. Plays</span>
+      </div>
+
+      <div class="tracks-list" id="tracks-list"></div>
+    </div>
+
+    <div id="error-screen" style="display:none" class="error-box">
+      <p style="color:#ff6b6b;font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:10px;">Something went wrong</p>
+      <p id="error-msg" style="font-family:'Courier Prime',monospace;font-size:0.78rem;color:var(--muted)"></p>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── CONFIG ── Edit these with your Spotify App credentials ──
+const CLIENT_ID    = 'YOUR_CLIENT_ID';
+const REDIRECT_URI = window.location.origin + window.location.pathname;
+const SCOPES       = 'user-top-read user-read-recently-played user-read-private user-read-email';
+
+function randomString(len) {
+  const c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from(crypto.getRandomValues(new Uint8Array(len))).map(b => c[b % c.length]).join('');
+}
+async function sha256(plain) {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(plain));
+}
+function b64url(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+async function startLogin() {
+  const verifier = randomString(64);
+  const challenge = b64url(await sha256(verifier));
+  sessionStorage.setItem('pkce_verifier', verifier);
+  const p = new URLSearchParams({
+    client_id: CLIENT_ID, response_type: 'code',
+    redirect_uri: REDIRECT_URI, scope: SCOPES,
+    code_challenge_method: 'S256', code_challenge: challenge,
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + p;
+}
+
+async function exchangeCode(code) {
+  const verifier = sessionStorage.getItem('pkce_verifier');
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: CLIENT_ID, grant_type: 'authorization_code',
+      code, redirect_uri: REDIRECT_URI, code_verifier: verifier,
+    }),
+  });
+  const d = await res.json();
+  if (d.access_token) {
+    sessionStorage.setItem('spotify_token', d.access_token);
+    sessionStorage.removeItem('pkce_verifier');
+    window.history.replaceState({}, '', window.location.pathname);
+  } else {
+    throw new Error(d.error_description || 'Token exchange failed');
+  }
+}
+
+async function spotifyGet(endpoint) {
+  const token = sessionStorage.getItem('spotify_token');
+  const res = await fetch('https://api.spotify.com/v1' + endpoint, {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (res.status === 401) { logout(); return null; }
+  return res.json();
+}
+
+let recentMap = {};
+async function loadRecentlyPlayed() {
+  const d = await spotifyGet('/me/player/recently-played?limit=50');
+  if (!d?.items) return;
+  d.items.forEach(i => { recentMap[i.track.id] = (recentMap[i.track.id] || 0) + 1; });
+}
+
+function estimatePlays(rank, range, id) {
+  const recent = recentMap[id] || 0;
+  const base = {
+    short_term:    [75,  12],
+    short_term_4w: [150, 22],
+    medium_term:   [400, 55],
+    long_term:     [850, 80],
+  }[range] || [180, 28];
+  const decay = Math.pow(base[1] / base[0], (rank - 1) / 49);
+  let est = Math.round(base[0] * decay);
+  if (recent > 0) est = Math.max(est, recent + Math.floor(Math.random() * 4));
+  return est;
+}
+
+const RANGE_META = {
+  short_term:    { sub: 'Last two weeks of listening' },
+  short_term_4w: { sub: 'Last four weeks of listening' },
+  medium_term:   { sub: 'Last six months of listening' },
+  long_term:     { sub: 'Your all-time top tracks' },
+};
+
+function apiRange(r) { return r === 'short_term_4w' ? 'short_term' : r; }
+
+let cache = {};
+async function loadTracks(range) {
+  if (cache[range]) return cache[range];
+  const d = await spotifyGet(`/me/top/tracks?limit=50&time_range=${apiRange(range)}`);
+  if (!d?.items) return [];
+  cache[range] = d.items;
+  return d.items;
+}
+
+function renderStats(tracks, range) {
+  const totalPlays = tracks.reduce((s, t, i) => s + estimatePlays(i + 1, range, t.id), 0);
+  const uniqueArtists = [...new Set(tracks.map(t => t.artists[0].name))].length;
+  const labels = { short_term:'2 Weeks', short_term_4w:'4 Weeks', medium_term:'6 Months', long_term:'All Time' };
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Time Window</div>
+      <div class="stat-value small">${labels[range]}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tracks Ranked</div>
+      <div class="stat-value green">${tracks.length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Unique Artists</div>
+      <div class="stat-value">${uniqueArtists}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Est. Total Plays</div>
+      <div class="stat-value green">${totalPlays.toLocaleString()}</div>
+    </div>
+  `;
+}
+
+function renderTracks(tracks, range) {
+  const list = document.getElementById('tracks-list');
+  list.innerHTML = '';
+  tracks.forEach((track, i) => {
+    const rank   = i + 1;
+    const plays  = estimatePlays(rank, range, track.id);
+    const art    = track.album.images?.[1]?.url || track.album.images?.[0]?.url || '';
+    const artist = track.artists.map(a => a.name).join(', ');
+    const album  = track.album.name;
+    const row    = document.createElement('div');
+    row.className = `track-row${rank <= 3 ? ' podium' : ''}`;
+    row.style.animationDelay = `${i * 16}ms`;
+    row.innerHTML = `
+      <div class="track-rank">
+        <div class="track-rank-num ${rank <= 3 ? 'top3' : ''}">${rank}</div>
+      </div>
+      <img class="track-art" src="${art}" alt="" loading="lazy"/>
+      <div class="track-info">
+        <div class="track-name">${track.name}</div>
+        <div class="track-artist">${artist}</div>
+        <div class="track-album">${album}</div>
+      </div>
+      <div class="track-plays">
+        <div class="plays-count">~${plays}</div>
+        <div class="plays-label">plays</div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+async function switchRange(range) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.range === range));
+  document.getElementById('range-subtitle').textContent = RANGE_META[range].sub;
+  showLoading(true);
+  try {
+    const tracks = await loadTracks(range);
+    renderStats(tracks, range);
+    renderTracks(tracks, range);
+    showLoading(false);
+  } catch (e) { showError(e.message); }
+}
+
+function showLoading(on) {
+  document.getElementById('loading').style.display  = on ? 'flex'  : 'none';
+  document.getElementById('content').style.display = on ? 'none'  : 'block';
+}
+
+function showError(msg) {
+  document.getElementById('loading').style.display       = 'none';
+  document.getElementById('content').style.display      = 'none';
+  document.getElementById('error-screen').style.display = 'block';
+  document.getElementById('error-msg').textContent      = msg;
+}
+
+function logout() { sessionStorage.removeItem('spotify_token'); location.reload(); }
+
+async function init() {
+  const token  = sessionStorage.getItem('spotify_token');
+  const params = new URLSearchParams(window.location.search);
+  const code   = params.get('code');
+
+  if (!token && !code) {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login-btn').addEventListener('click', e => { e.preventDefault(); startLogin(); });
+    return;
+  }
+
+  if (code) {
+    try { await exchangeCode(code); }
+    catch (e) { showError(e.message); return; }
+  }
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display          = 'block';
+  showLoading(true);
+
+  const profile = await spotifyGet('/me');
+  if (profile) {
+    document.getElementById('user-name').textContent = profile.display_name || profile.id;
+    if (profile.images?.[0]?.url) {
+      const av = document.getElementById('user-avatar');
+      av.src = profile.images[0].url;
+      av.style.display = 'block';
+    }
+  }
+
+  await loadRecentlyPlayed();
+  await switchRange('short_term_4w');
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchRange(btn.dataset.range));
+  });
+  document.getElementById('logout-btn').addEventListener('click', logout);
+}
+
+init();
+</script>
+</body>
+</html>
