@@ -2,7 +2,7 @@
   ╔══════════════════════════════════════════════════════════════════╗
   ║  Spotify Stats — Editorial Listening Dashboard                  ║
   ║  Version: 2.0.0                                                 ║
-  ║  Author:  Bat (Joshua Sat)                                      ║
+  ║  Author:  Bat                                 ║
   ║  Date:    2026-03-17                                             ║
   ║  License: MIT                                                    ║
   ║                                                                  ║
